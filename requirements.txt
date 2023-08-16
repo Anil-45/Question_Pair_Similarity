@@ -1,0 +1,14 @@
+pandas
+numpy
+matplotlib
+seaborn
+spacy
+nltk
+contractions
+scikit-learn
+xgboost
+optuna
+distance
+fuzzywuzzy
+scipy
+pickle

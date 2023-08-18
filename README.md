@@ -15,7 +15,7 @@ Credits: Kaggle
 * [Setup](#setup)
 * [Usage](#usage)
 * [Contact](#contact)
-* [License](#license)
+* [References](#references)
 
 ## General Information
 Identify which questions asked on Quora are duplicates of the questions that have already been asked. This could be useful to instantly provide answers. We are tasked with predicting whether a pair of questions are duplicates or not.

@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 import pickle
 
-def reduce_mem_usage(df):
+def reduce_mem_usage(df, verbose=False):
     """Reduce memory usage of a dataframe
 
     Args:
@@ -14,13 +14,14 @@ def reduce_mem_usage(df):
     Returns:
         pd.DataFrame : Dataframe with reduced size
     """
-    initial_mem = df.memory_usage().sum() / 1024**2
-    print('Memory usage of dataframe is {:.2f} MB'.format(initial_mem))
+    if verbose:
+        initial_mem = df.memory_usage().sum() / 1024**2
+        print('Memory usage of dataframe is {:.2f} MB'.format(initial_mem))
     
     for col in df.columns:
         col_type = df[col].dtype
         
-        if col_type != object:
+        if col_type not in [object, 'category']:
             c_min = df[col].min()
             c_max = df[col].max()
             if str(col_type)[:3] == 'int':
@@ -42,10 +43,12 @@ def reduce_mem_usage(df):
         else:
             df[col] = df[col].astype('category')
 
-    final_mem = df.memory_usage().sum() / 1024**2
-    print('Memory usage after optimization is: {:.2f} MB'.format(final_mem))
-    print('Decreased by {:.1f}%'.format(100 * (initial_mem - final_mem) / initial_mem))
-    
+    if verbose:
+        final_mem = df.memory_usage().sum() / 1024**2
+        print('Memory usage after optimization is: {:.2f} MB'.format(final_mem))
+        print('Decreased by {:.1f}%'.format(
+                                100 * (initial_mem - final_mem) / initial_mem))
+        
     return df
 
 def save_dict(dictionary, path):

@@ -126,9 +126,9 @@ def get_stopword_features(q1, q2):
     features[2] = common_stop_words_count / (min(len(q1_stop_words), len(q2_stop_words)) + SAFE_DIV)
     # csc_max : (common stop words count) / min(len_q1_stop_words, len_q2_stop_words)
     features[3] = common_stop_words_count / (max(len(q1_stop_words), len(q2_stop_words)) + SAFE_DIV)
-    # ctc_min : (common tokens count) / min(len_q1_stop_words, len_q2_stop_words)
+    # ctc_min : (common tokens count) / min(len_q1_tokens, len_q2_tokens)
     features[4] = common_token_count / (min(len(q1_tokens), len(q2_tokens)) + SAFE_DIV)
-    # ctc_min : (common tokens count) / min(len_q1_stop_words, len_q2_stop_words)
+    # ctc_max : (common tokens count) / max(len_q1_tokens, len_q2_tokens)
     features[5] = common_token_count / (max(len(q1_tokens), len(q2_tokens)) + SAFE_DIV)
     
     return features

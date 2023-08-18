@@ -5,6 +5,8 @@ Over 100 million people visit Quora every month, so it's no surprise that many p
 
 Credits: Kaggle
 
+To learn more about this project, check out my [blog](https://anil-45.github.io/blogs/question_pair_similarity/)
+
 ## Table of Contents
 * [General Info](#general-information)
 * [Constraints](#constraints)

@@ -25,16 +25,17 @@ def create_plots(df, feat_col, tar_col):
                  label="Not duplicate",
                  color='blue')
     plt.legend()
-    plt.show()
+    plt.savefig(f'../figures/{feat_col}_vs_{tar_col}.png')
     
-def plot_confusion_matrix(y_true, y_pred):
+def plot_confusion_matrix(y_true, y_pred, title):
     """Plot confusion matrix
 
     Args:
         y_true (array): True labels
         y_pred (array): Predicted labels
+        title (string): Title
     """
     fig = ConfusionMatrixDisplay(confusion_matrix(y_true, y_pred),
                        display_labels=['Not duplicate', 'Duplicate'])
     fig.plot()
-    plt.show()
+    plt.savefig(f"../figures/{title}.png")

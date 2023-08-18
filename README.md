@@ -17,19 +17,19 @@ Credits: Kaggle
 * [Contact](#contact)
 * [License](#license)
 
-### General Information:
+## General Information
 Identify which questions asked on Quora are duplicates of the questions that have already been asked. This could be useful to instantly provide answers. We are tasked with predicting whether a pair of questions are duplicates or not.
 
-### Constraints :
+## Constraints
 - The cost of a mis-classification can be very high.
 - No strict latency concerns.
 - Interpretability is partially important.
 
-### Metrics:
+## Metrics
 - Log loss 
 - Confusion Matrix
 
-### Data Overview:
+## Data Overview
 Data has 6 columns and a total of 4,04,287 entries.
 - id - Id
 - qid1 - Id corresponding to question1
@@ -38,7 +38,7 @@ Data has 6 columns and a total of 4,04,287 entries.
 - question2 - Question 2
 - is_duplicate - Determines whether a pair is duplicate or not
 
-###  Libraries
+##  Libraries
 - Application Framework - flask, wsgiref
 - Data processing and ML - numpy, pandas, matplotlib, sklearn, xgboost, seaborn, spacy, nltk, contractions, fuzzywuzzy, distance, optuna
 - General operations - os, pickle, re

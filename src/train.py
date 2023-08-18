@@ -5,13 +5,14 @@ import pandas as pd
 import xgboost as xgb
 from sklearn.model_selection import train_test_split 
 from sklearn.metrics import log_loss
-from feature_extraction import generate_features
-from utils import load_dict
+from .feature_extraction import generate_features
+from .utils import load_dict
+from .visualize import plot_confusion_matrix
 
-TRAIN_PATH = '../data/data.csv'
-FINAL_DATA_PATH = '../data/final_data.csv'
+TRAIN_PATH = '../data/train.csv'
+FINAL_TRAIN_PATH = '../data/final_train.csv'
 BEST_PARAMS_PATH = '../models/best_config.pkl'
-XGB_OPTIMAL_PATH="../models/xgboost_optimal.json"
+XGB_MODEL_PATH="../models/xgboost.json"
 
 def train(X, y):
     """Train
@@ -33,6 +34,7 @@ def train(X, y):
     
     params['scale_pos_weight'] = list(y_train).count(0)/list(y_train).count(1)
     params['objective'] = 'binary:logistic'
+    params['eval_metric'] = 'logloss'
     
     model = xgb.XGBClassifier(**params, random_state=12)
     model.fit(X_train, y_train, eval_set=[(X_val, y_val)], verbose=False)
@@ -46,14 +48,22 @@ def train(X, y):
     print("Train loss: ", train_loss)
     print("Val loss: ", val_loss)
     
-    model.save_model(XGB_OPTIMAL_PATH)
+    model.save_model(XGB_MODEL_PATH)
+    print(f'Model saved to {XGB_MODEL_PATH}')
+    
+    plot_confusion_matrix(y_train,
+                          model.predict(X_train),
+                          "train_confusion_matrix")
+    plot_confusion_matrix(y_val,
+                          model.predict(X_val),
+                          "val_confusion_matrix")
     
 if "__main__" == __name__:
-    if os.path.exists(FINAL_DATA_PATH):
-        data = pd.read_csv(FINAL_DATA_PATH)
+    if os.path.exists(FINAL_TRAIN_PATH):
+        data = pd.read_csv(FINAL_TRAIN_PATH)
     else:
         data = pd.read_csv(TRAIN_PATH)
         data = generate_features(data)
-        data.to_csv(FINAL_DATA_PATH, index=False)
-    train(data.drop(columns=['is_duplicate']), data['is_duplicate'])
+        data.to_csv(FINAL_TRAIN_PATH, index=False)
+    train(data.drop(columns=['id', 'is_duplicate']), data['is_duplicate'])
     

@@ -9,11 +9,11 @@ from scipy.spatial.distance import euclidean, minkowski, braycurtis
 from sklearn.feature_extraction.text import TfidfVectorizer
 import nltk
 import distance
-import fuzzywuzzy as fuzz
+from fuzzywuzzy import fuzz
 import spacy
 from tqdm import tqdm
-from preprocessing import text_pre_processor
-from utils import save_dict, load_dict, reduce_mem_usage
+from .preprocessing import text_pre_processor
+from .utils import reduce_mem_usage
 
 def word_feat(row):
     """Word based features.
@@ -54,6 +54,11 @@ def get_basic_features(data):
     
     df['question1'] = df['question1'].apply(text_pre_processor)
     df['question2'] = df['question2'].apply(text_pre_processor)
+
+    df['freq_qid1'] = df.groupby('qid1')['qid1'].transform('count') 
+    df['freq_qid2'] = df.groupby('qid2')['qid2'].transform('count')
+    df['freq_q1+q2'] = df['freq_qid1']+df['freq_qid2']
+    df['freq_q1-q2'] = abs(df['freq_qid1']-df['freq_qid2'])
     
     df['q1_len'] = df['question1'].apply(lambda x: len(str(x)))
     df['q2_len'] = df['question2'].apply(lambda x: len(str(x)))
@@ -87,7 +92,7 @@ def get_stopword_features(q1, q2):
     SAFE_DIV = 0.0001 
     STOP_WORDS = nltk.corpus.stopwords.words("english")
 
-    features = [0.0]*4
+    features = [0.0]*6
     
     # Converting the Sentence into Tokens
     q1_tokens = q1.split()
@@ -110,6 +115,9 @@ def get_stopword_features(q1, q2):
     # Get the common stopwords from Question pair
     common_stop_words_count = len(q1_stop_words.intersection(q2_stop_words))
     
+    # Get the common Tokens from Question pair
+    common_token_count = len(set(q1_tokens).intersection(set(q2_tokens)))
+    
     # cnsc_min : (common non stop words count) / min(len_q1_non_stop_words, len_q2_non_stop_words) 
     features[0] = common_non_stop_words_count / (min(len(q1_non_stop_words), len(q2_non_stop_words)) + SAFE_DIV)
     # cnsc_max : (common non stop words count) / max(len_q1_non_stop_words, len_q2_non_stop_words) 
@@ -118,6 +126,10 @@ def get_stopword_features(q1, q2):
     features[2] = common_stop_words_count / (min(len(q1_stop_words), len(q2_stop_words)) + SAFE_DIV)
     # csc_max : (common stop words count) / min(len_q1_stop_words, len_q2_stop_words)
     features[3] = common_stop_words_count / (max(len(q1_stop_words), len(q2_stop_words)) + SAFE_DIV)
+    # ctc_min : (common tokens count) / min(len_q1_stop_words, len_q2_stop_words)
+    features[4] = common_token_count / (min(len(q1_tokens), len(q2_tokens)) + SAFE_DIV)
+    # ctc_min : (common tokens count) / min(len_q1_stop_words, len_q2_stop_words)
+    features[5] = common_token_count / (max(len(q1_tokens), len(q2_tokens)) + SAFE_DIV)
     
     return features
 
@@ -154,8 +166,9 @@ def get_advanced_features(data):
     """
     df = data.copy()
     
-    df[['cnsc_min', 'cnsc_max', 'csc_min', 'csc_max']] = df.apply(
-        lambda row: pd.Series(get_stopword_features(row['question1'],
+    df[['cnsc_min', 'cnsc_max', 'csc_min', 'csc_max', 'ctc_min', 'ctc_max']] \
+        = df.apply( lambda row: pd.Series(get_stopword_features(
+                                                    row['question1'],
                                                     row['question2'])), axis=1)
     
     df["token_set_ratio"]    = df.apply(lambda x: fuzz.token_set_ratio(
@@ -177,33 +190,20 @@ def get_vectors(data, word2idf):
 
     Args:
         data (pd.DataFrame): data
-        word2idf (dict): idf dict of of tfidf
+        word2idf (dict): idf dict of tfidf
     """
     df = data.copy()
     
     nlp = spacy.load('en_core_web_sm')
 
+    df['question1'] = df['question1'].fillna('No question')
+    df['question2'] = df['question2'].fillna('No question')
+
     for col in ['question1', 'question2']:
         vectors = []
 
         for doc in tqdm(nlp.pipe(df[col])):
-            if len(doc) != 0:
-                mean_vec = np.zeros(len(doc[0].vector))
-            else:
-                mean_vec = np.zeros(96)
-                
-            tf_idf_sum = 0
-            for word in doc:
-                vec = word.vector
-                try:
-                    tf_idf = (list(doc).count(word)/len(doc))*word2idf[str(word)]
-                except:
-                    tf_idf = 0
-                mean_vec += vec * tf_idf
-                tf_idf_sum += tf_idf
-            if tf_idf_sum != 0: 
-                mean_vec /= tf_idf_sum
-            vectors.append(mean_vec)
+            vectors.append(doc.vector)
 
         temp_df = pd.DataFrame(vectors)
         temp_df.columns = [f"feat_{col}_{i}" for i in range(len(vectors[0]))]
@@ -275,24 +275,17 @@ def generate_features(data, is_train=True):
     """
     df = data.copy()
     
+    df['question1'] = df['question1'].fillna('No question')
+    df['question2'] = df['question2'].fillna('No question')
+    
     df = get_basic_features(df)
     df = get_advanced_features(df)
     
-    if is_train:
-        questions = df['question1'].to_list() + df['question2'].to_list()
-        tfidf = TfidfVectorizer()
-        tfidf.fit(questions)
-        word2idf = dict(zip(tfidf.get_feature_names_out(),  tfidf.idf_))
-        save_dict(word2idf, '../models/word2idf.pkl')
-    else:
-        assert os.path.exists('../models/word2idf.pkl'), 'word2idf.pkl missing'
-        word2idf = load_dict('../models/word2idf.pkl')
+    df = get_vectors(df, None)
     
-    df = get_vectors(df, word2idf)
+    df.drop(columns=['qid1', 'qid2', 'question1', 'question2'], inplace=True)
     
     if is_train:
-        df.drop(columns=['id', 'qid1', 'qid2', 'question1', 'question2'],
-                inplace=True)
         df.dropna(axis=0, inplace=True)
         
     df = get_distance_feat(df)

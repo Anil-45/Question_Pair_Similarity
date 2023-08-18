@@ -1,14 +1,17 @@
 """Hyperparameter Optimization."""
 
+import os
 import pandas as pd
 import numpy as np
 import optuna
 import xgboost as xgb
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import log_loss
-from utils import save_dict
+from .utils import save_dict
+from .feature_extraction import generate_features
 
-FINAL_DATA_PATH = '../data/final_data.csv'
+TRAIN_PATH = '../data/train.csv'
+FINAL_TRAIN_PATH = '../data/final_train.csv'
 BEST_PARAMS_PATH = '../models/best_config.pkl'
 
 def objective(trial, data, target):
@@ -29,11 +32,11 @@ def objective(trial, data, target):
         "learning_rate": trial.suggest_float("learning_rate", 1e-2, 0.30, log=True),
         "reg_lambda": trial.suggest_float("reg_lambda", 1e-8, 100.0, log=True),
         "reg_alpha": trial.suggest_float("reg_alpha", 1e-8, 100.0, log=True),
-        "subsample": trial.suggest_float("subsample", 0.3, 1.0),
+        "subsample": trial.suggest_float("subsample", 0.6, 1.0),
         "colsample_bytree": trial.suggest_float("colsample_bytree", 0.1, 1.0),
-        "max_depth": trial.suggest_int("max_depth", 3, 9, step=2),
-        "early_stopping_rounds": trial.suggest_int("early_stopping_rounds", 100, 500),
-        "n_estimators": trial.suggest_int("n_estimators", 4000, 7000, step=1000),
+        "max_depth": trial.suggest_int("max_depth", 3, 7, step=2),
+        # "early_stopping_rounds": trial.suggest_int("early_stopping_rounds", 100, 500),
+        "n_estimators": trial.suggest_int("n_estimators", 200, 500, step=100),
         'objective': 'binary:logistic'
     }
       
@@ -76,8 +79,14 @@ def optimize(X, y, n_trials):
     return study.best_trial.params
 
 if "__main__" == __name__:
-    data = pd.read_csv(FINAL_DATA_PATH)
-    X = data.drop(columns=['is_duplicate'])
+    if os.path.exists(FINAL_TRAIN_PATH):
+        data = pd.read_csv(FINAL_TRAIN_PATH)
+    else:
+        data = pd.read_csv(TRAIN_PATH)
+        data = generate_features(data)
+        data.to_csv(FINAL_TRAIN_PATH, index=False)
+    
+    X = data.drop(columns=['id', 'is_duplicate'])
     y = data['is_duplicate']
     best_params = optimize(X, y, n_trials=5)
     save_dict(best_params, BEST_PARAMS_PATH)

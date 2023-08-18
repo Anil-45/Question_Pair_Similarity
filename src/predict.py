@@ -4,15 +4,12 @@ import os
 import pandas as pd
 import numpy as np
 import xgboost as xgb
-from sklearn.model_selection import train_test_split 
-from sklearn.metrics import log_loss
-from feature_extraction import generate_features
-from utils import load_dict
+from .feature_extraction import generate_features
 
 TEST_PATH = '../data/test.csv'
 FINAL_TEST_PATH = '../data/final_test.csv'
 PREDICTIONS_PATH = '../data/predictions.csv'
-XGB_OPTIMAL_PATH="../models/xgb1.json"
+XGB_OPTIMAL_PATH="models/xgboost.json"
 
 def predict(X, proba=False):
     """Train
@@ -39,6 +36,7 @@ def predict(X, proba=False):
     return pred        
 
 if "__main__" == __name__:
+    XGB_OPTIMAL_PATH="../models/xgboost.json"
     if os.path.exists(FINAL_TEST_PATH):
         data = pd.read_csv(FINAL_TEST_PATH)
     else:

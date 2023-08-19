@@ -19,7 +19,7 @@ def _predict(question1, question2):
         print(prediction)
     except Exception as e:
         print(e)
-        return e # "Sorry, something went wrong."
+        return str(e) # "Sorry, something went wrong."
     
     if prediction > 0.75:
         result = "Similar"

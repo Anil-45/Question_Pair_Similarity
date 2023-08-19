@@ -8,6 +8,7 @@ from scipy.spatial.distance import cosine, cityblock, jaccard, canberra
 from scipy.spatial.distance import euclidean, minkowski, braycurtis
 from sklearn.feature_extraction.text import TfidfVectorizer
 import nltk
+nltk.download("stopwords")
 import distance
 from fuzzywuzzy import fuzz
 import spacy

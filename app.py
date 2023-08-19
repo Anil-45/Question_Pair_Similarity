@@ -6,7 +6,7 @@ from src.feature_extraction import generate_features
 from src.predict import predict
 
 HOST = "0.0.0.0"
-PORT = 5000
+PORT = 10000
 
 app = Flask(__name__)
 
@@ -19,7 +19,7 @@ def _predict(question1, question2):
         print(prediction)
     except Exception as e:
         print(e)
-        return "Sorry, something went wrong."
+        return e # "Sorry, something went wrong."
     
     if prediction > 0.75:
         result = "Similar"

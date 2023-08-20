@@ -1,4 +1,5 @@
 import os
+import re
 import pandas as pd
 from wsgiref import simple_server
 from flask import Flask, render_template, request
@@ -11,6 +12,16 @@ PORT = 10000
 app = Flask(__name__)
 
 def _predict(question1, question2):
+    question1 = question1.strip()
+    question2 = question2.strip()
+    
+    if not re.search('[a-zA-Z]', question1):
+        return "Please enter a valid Question 1"
+    elif not re.search('[a-zA-Z]', question2):
+        return "Please enter a valid Question 2"
+    elif question1.lower() == question2.lower():
+        return "Similar"
+
     df = pd.DataFrame(columns=['id', 'qid1', 'qid2', 'question1', 'question2'])
     df.loc[0, :] = [0, 1, 2, question1, question2] 
     try:
@@ -19,7 +30,7 @@ def _predict(question1, question2):
         print(prediction)
     except Exception as e:
         print(e)
-        return str(e) # "Sorry, something went wrong."
+        return "Sorry, something went wrong."
     
     if prediction > 0.75:
         result = "Similar"
@@ -38,8 +49,8 @@ def index():
 @app.route('/predict', methods=['GET', 'POST'])
 def get_predictions():
     if 'POST' == request.method:
-        question1 = request.form['question1']
-        question2 = request.form['question2']
+        question1 = str(request.form['question1'])
+        question2 = str(request.form['question2'])
         return _predict(question1, question2)
     
     return None

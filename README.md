@@ -16,6 +16,7 @@ To learn more about this project, check out my [blog](https://anil-45.github.io/
 * [Screenshots](#screenshots)
 * [Setup](#setup)
 * [Usage](#usage)
+* [Room for improvement](#room-for-improvement)
 * [Contact](#contact)
 * [References](#references)
 
@@ -86,6 +87,9 @@ For predictions, place the `test.csv` in `data` folder
 ```bash
 python predict.py
 ``` 
+
+## Room for improvement
+- Add spell correction
 
 ## Contact
 Created by [@Anil_Reddy](https://github.com/Anil-45/) 

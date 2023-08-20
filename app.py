@@ -12,10 +12,15 @@ PORT = 10000
 app = Flask(__name__)
 
 def _predict(question1, question2):
+    question1 = question1.strip()
+    question2 = question2.strip()
+    
     if not re.search('[a-zA-Z]', question1):
         return "Please enter a valid Question 1"
     elif not re.search('[a-zA-Z]', question2):
         return "Please enter a valid Question 2"
+    elif question1.lower() == question2.lower():
+        return "Similar"
 
     df = pd.DataFrame(columns=['id', 'qid1', 'qid2', 'question1', 'question2'])
     df.loc[0, :] = [0, 1, 2, question1, question2] 
